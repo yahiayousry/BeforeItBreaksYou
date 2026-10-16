@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Breaking Point Check-In | Clarity Circle</title>
+<style>
+:root{--g:#085041;--m:#5DCAA5;--b:#85B7EB;--p:#E1F5EE}
+*{box-sizing:border-box}
+body{margin:0;background:var(--p);color:#16332d;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+main{max-width:620px;margin:0 auto;padding:24px 18px 48px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--g);margin-bottom:18px}
+.card{background:#fff;border-radius:18px;padding:26px 22px;box-shadow:0 2px 14px rgba(8,80,65,.08)}
+h1{font-size:1.7rem;line-height:1.2;margin:.2em 0 .5em;color:var(--g)}
+h2{font-size:1.25rem;color:var(--g);margin:1.2em 0 .4em}
+.btn{display:block;width:100%;text-align:left;border:2px solid var(--p);background:#fff;border-radius:12px;padding:14px 16px;margin:10px 0;font-size:1rem;cursor:pointer;color:inherit}
+.btn:hover,.btn:focus{border-color:var(--m);outline:none}
+.cta{background:var(--g);color:#fff;text-align:center;text-decoration:none;font-weight:600;border-color:var(--g)}
+.cta.alt{background:#fff;color:var(--g)}
+.bar{height:8px;background:var(--p);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--m),var(--b));width:0;transition:width .3s}
+.small{font-size:.85rem;color:#4b6a63}
+input[type=email]{width:100%;padding:13px;border:2px solid var(--p);border-radius:12px;font-size:1rem;margin:8px 0}
+.tag{display:inline-block;background:var(--p);color:var(--g);border-radius:20px;padding:4px 12px;font-size:.85rem;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<div class="brand"><svg width="34" height="22" viewBox="0 0 34 22"><circle cx="12" cy="11" r="10" fill="#5DCAA5"/><circle cx="22" cy="11" r="10" fill="#85B7EB"/></svg>Clarity Circle</div>
+<div id="app" class="card"></div>
+<p class="small" style="margin-top:18px">This check-in is self-guided education and reflection. It is not therapy, medical care, or a diagnosis.</p>
+</main>
+
+
+<script>
+// ===== SET THESE TWO LINKS (leave "" to hide a button) =====
+const BOOK_URL = "";    // your book listing
+const CIRCLE_URL = "https://whop.com/clarity-circle-f5a1/";  // your community or waitlist link
+// ===========================================================
+
+const params = new URLSearchParams(location.search);
+const SRC = params.get("src") || "direct";
+function track(name, props){ try{ if(window.gtag) gtag("event", name, props||{}); if(window.plausible) plausible(name,{props:props||{}}); }catch(e){} }
+function withSrc(url, medium){ if(!url) return ""; const u=new URL(url, location.href); u.searchParams.set("utm_source", SRC); u.searchParams.set("utm_medium", medium); u.searchParams.set("utm_campaign", "quiz"); return u.toString(); }
+
+const SCALE = ["Not like me","A little like me","Sometimes like me","Often like me","Very like me"];
+
+const Q = {
+W:["I feel responsible for keeping the peace in my relationship.","I do most of the emotional work for both of us.","I'm tired in a way that rest doesn't fix.","I put their needs first so often that I've lost track of my own.","I feel guilty when I take time for myself.","I feel like everything will fall apart if I stop holding it together."],
+A:["I keep hoping they'll go back to how they were at the start.","I've stayed longer than I should have because of how much I've already put in.","I remember the good moments more strongly than the painful ones.","Even when I know it's hurting me, leaving feels impossible.","I tell myself \"it's not that bad\" more often than I'd like.","I don't know who I'd be without them."],
+V:["I think carefully before I speak so I don't set them off.","I've stopped bringing up things that matter to me.","I apologize even when I'm not sure I did anything wrong.","My opinions get dismissed or twisted when I share them.","I agree just to avoid an argument.","I rehearse what I want to say, then stay silent."],
+E:["I replay conversations in my head long after they end.","I wonder whether I'm remembering things correctly.","I ask myself \"Is it me?\" again and again.","I search for what I could have done differently.","Their words stay in my head even when they're not around.","I second-guess my feelings after talking to them."],
+S:["I keep my guard up, even with people who care about me.","I go numb or pull away when things get hard.","I've stopped expecting people to really be there for me.","I'd rather handle things alone than risk being hurt again.","I keep people at a distance so they can't hurt me.","I say \"I'm fine\" when I'm not."]
+};
+
+const R = {
+W:{n:"The Weight",l:"You carry more than your share.",t:"In your relationship, you tend to hold everything together: the feelings, the plans, the peace. From the outside it can look like strength. On the inside it often feels like exhaustion that sleep doesn't fix.",s:"This week, notice one thing you're carrying that isn't yours alone, and let it stay put down."},
+A:{n:"The Anchor",l:"Hope keeps you in place.",t:"You're drawn to who they were at their best, or who you hope they'll become. That loyalty is real, and it can also keep you in the same spot long after it stopped feeling safe.",s:"Write down one moment from the past month exactly as it happened, not as you wish it had."},
+V:{n:"The Voice",l:"You've learned to say less.",t:"You choose your words carefully, or stay quiet, to keep things calm. Over time that can leave you feeling unheard, even by yourself.",s:"Say one small, true thing today to a friend, or write it in a private note."},
+E:{n:"The Echo",l:"It keeps replaying.",t:"Conversations, tones and moments loop in your mind while you ask whether it's you. That loop is exhausting, and it often grows when you've been made to doubt your own memory.",s:"When the loop starts, write what actually happened in two plain sentences."},
+S:{n:"The Shield",l:"You protect yourself by pulling back.",t:"You keep your guard up, go quiet or numb when things get heavy, and lean on yourself first. It kept you safe, and it can also keep out the support you need.",s:"Tell one safe person one honest sentence about how you're really doing."}
+};
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let items, idx, score, fives;
+const app = document.getElementById("app");
+
+function intro(){
+  app.innerHTML = `<span class="tag">Free · 5 minutes · 30 questions</span>
+  <h1>The Breaking Point Check-In</h1>
+  <p>Some relationships take more than they give. This check-in helps you see which pattern you may be carrying most right now.</p>
+  <p class="small">There are no right or wrong answers. Answer based on how things have felt lately.</p>
+  <button class="btn cta" id="go">Start the check-in</button>`;
+  document.getElementById("go").onclick = start;
+}
+
+function start(){
+  items = shuffle(Object.entries(Q).flatMap(([k,arr])=>arr.map(t=>({k,t}))));
+  idx = 0; score = {W:0,A:0,V:0,E:0,S:0}; fives = {W:0,A:0,V:0,E:0,S:0};
+  track("quiz_start", {src:SRC});
+  ask();
+}
+
+function ask(){
+  const it = items[idx];
+  app.innerHTML = `<div class="bar"><i style="width:${(idx/items.length)*100}%"></i></div>
+  <p class="small">Question ${idx+1} of ${items.length}</p>
+  <h2 style="margin-top:.2em">${it.t}</h2>
+  ${SCALE.map((s,i)=>`<button class="btn" data-v="${i+1}">${s}</button>`).join("")}`;
+  app.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>answer(+b.dataset.v));
+}
+
+function answer(v){
+  const k = items[idx].k; score[k]+=v; if(v===5) fives[k]++;
+  idx++;
+  if(idx<items.length) ask(); else result();
+}
+
+function result(){
+  const order = Object.keys(score);
+  const k = order.reduce((best,c)=> (score[c]>score[best] || (score[c]===score[best] && fives[c]>fives[best])) ? c : best, order[0]);
+  const r = R[k];
+  track("quiz_complete", {wave:k, src:SRC});
+  const book = withSrc(BOOK_URL,"book"), circle = withSrc(CIRCLE_URL,"circle");
+  app.innerHTML = `<div class="bar"><i style="width:100%"></i></div>
+  <span class="tag">Your strongest pattern right now</span>
+  <h1>${r.n}</h1>
+  <p><strong>${r.l}</strong></p>
+  <p>${r.t}</p>
+  <h2>A small first step</h2>
+  <p>${r.s}</p>
+  <p class="small">Most people carry more than one pattern. This is the one speaking loudest at the moment. It's a pattern, not a label, and patterns can change.</p>
+  ${book?`<a class="btn cta" id="cb" href="${book}">Read the story behind your pattern</a>`:""}
+  ${circle?`<a class="btn cta alt" id="cc" href="${circle}">Join the Circle</a>`:""}
+  <p class="small" style="margin-top:20px">If you are in danger or being harmed, please contact your local emergency services or someone you trust. This check-in cannot provide emergency help.</p>`;
+  const cb=document.getElementById("cb"), cc=document.getElementById("cc");
+  if(cb) cb.onclick=()=>track("cta_book",{wave:k,src:SRC});
+  if(cc) cc.onclick=()=>track("cta_circle",{wave:k,src:SRC});
+}
+
+
+intro();
+</script>
+</body>
+</html>
